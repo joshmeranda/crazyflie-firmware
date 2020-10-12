@@ -198,12 +198,14 @@ void radiolinkSyslinkDispatch(SyslinkPacket *slp)
 static int radiolinkReceiveCRTPPacket(CRTPPacket *p)
 {
 #ifndef AES_ECB_KEY
-  if (xQueueReceive(crtpPacketDelivery, p, M2T(100)) == pdTrue)
+  if (xQueueReceive(crtpPacketDelivery, p, M2T(100)) == pdTRUE)
   {
     uint8_t *data = (uint8_t*) malloc(p->size + 1);
     memcpy(data, &p->header, p->size + 1);
 
-    CRYP_AES_ECB(MODE_DECRYPT, AES_ECB_KEY, 128, data, p->szie + 1, &p->header);
+    uint8_t key[16] = AES_ECB_KEY; // expand macro before function pass
+
+    CRYP_AES_ECB(MODE_DECRYPT, key, 128, data, p->size + 1, &p->header);
 
     free(data);
     return 0;
@@ -242,7 +244,9 @@ static int radiolinkSendCRTPPacket(CRTPPacket *p)
   memset(data, 0, length); // TODO: only zero the trailing unused data
   memcpy(data, &p->header, p->size + 1);
 
-  CRYP_AES_ECB(MODE_ENCRYPT, AES_ECB_KEY, 128, data, length, (uint8_t*) slp.data);
+    uint8_t key[16] = AES_ECB_KEY; // expand macro before function pass
+
+  CRYP_AES_ECB(MODE_ENCRYPT, key, 128, data, length, (uint8_t*) slp.data);
   free(data);
 #else
   memcpy(slp.data, &p->header, p->size + 1);

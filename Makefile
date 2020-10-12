@@ -75,6 +75,14 @@ ST_OBJ += usb_core.o usb_dcd_int.o usb_dcd.o
 # USB Device obj
 ST_OBJ += usbd_ioreq.o usbd_req.o usbd_core.o
 
+# add ecnryption funcitonality
+ifdef AES_ECB_KEY
+ST_OBJ+=stm32f4xx_cryp.o
+ST_OBJ+=stm32f4xx_cryp_aes.o
+
+CFLAGS += -DAES_ECB_KEY=$(AES_ECB_KEY)
+endif
+
 PROCESSOR = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -fno-math-errno -DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -mfp16-format=ieee
 
