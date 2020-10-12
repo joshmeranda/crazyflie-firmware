@@ -52,14 +52,12 @@ UART2_LINK        ?= 0
 
 
 ############### CPU-specific build configuration ################
-
 ifeq ($(CPU), stm32f4)
 PORT = $(FREERTOS)/portable/GCC/ARM_CM4F
 LINKER_DIR = $(CRAZYFLIE_BASE)/tools/make/F405/linker
 ST_OBJ_DIR  = $(CRAZYFLIE_BASE)/tools/make/F405
 
 OPENOCD_TARGET    ?= target/stm32f4x_stlink.cfg
-
 
 # St Lib
 VPATH += $(LIB)/CMSIS/STM32F4xx/Source/

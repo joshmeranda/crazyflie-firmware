@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /*FreeRtos includes*/
 #include "FreeRTOS.h"
@@ -44,11 +45,15 @@
 #include "queuemonitor.h"
 #include "static_mem.h"
 
+#include "stm32f4xx_cryp.h"
+
 #define RADIOLINK_TX_QUEUE_SIZE (1)
 #define RADIOLINK_CRTP_QUEUE_SIZE (5)
 #define RADIO_ACTIVITY_TIMEOUT_MS (1000)
 
 #define RADIOLINK_P2P_QUEUE_SIZE (5)
+
+#define AES_ECB_KEY ((unsigned char *) "abcdefghijklmnop") // todo: create an actual 128 bit key
 
 static xQueueHandle  txQueue;
 STATIC_MEM_QUEUE_ALLOC(txQueue, RADIOLINK_TX_QUEUE_SIZE, sizeof(SyslinkPacket));
@@ -215,7 +220,19 @@ static int radiolinkSendCRTPPacket(CRTPPacket *p)
 
   slp.type = SYSLINK_RADIO_RAW;
   slp.length = p->size + 1;
+
+#ifdef AES_ECB_KEY
+  int length = p->size - p->size + 1 % 16 + p->size;
+  uint8_t *data = (uint8_t*) malloc(length);
+
+  memset(data, 0, length); // TODO: only set the last unused data to zero
+  memcpy(data, &p->header, p->size + 1);
+
+  CRYP_AES_ECB(MODE_ENCRYPT, AES_ECB_KEY, 128, data, length, (uint8_t*) slp.data);
+  free(data);
+#else
   memcpy(slp.data, &p->header, p->size + 1);
+#endif /* AES_ECB_KEY */
 
   if (xQueueSend(txQueue, &slp, M2T(100)) == pdTRUE)
   {

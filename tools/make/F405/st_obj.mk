@@ -28,3 +28,7 @@ ST_OBJ+=stm32f4xx_usart.o
 ST_OBJ+=stm32f4xx_misc.o
 #ST_OBJ+=stm32f4xx_wwdg.o
 ST_OBJ+=stm32f4xx_syscfg.o
+
+# encryption files
+ST_OBJ+=stm32f4xx_cryp.o
+ST_OBJ+=stm32f4xx_cryp_aes.o

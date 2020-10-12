@@ -312,7 +312,8 @@ FunctionalState CRYP_GetCmdStatus(void);
 FlagStatus CRYP_GetFlagStatus(uint8_t CRYP_FLAG);
 
 /* High Level AES functions **************************************************/
-ErrorStatus CRYP_AES_ECB(uint8_t Mode,
+ErrorStatus
+CRYP_AES_ECB(uint8_t Mode,
                          uint8_t *Key, uint16_t Keysize,
                          uint8_t *Input, uint32_t Ilength,
                          uint8_t *Output);

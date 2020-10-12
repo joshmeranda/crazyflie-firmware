@@ -115,6 +115,7 @@ int crtpReceivePacket(CRTPPort portId, CRTPPacket *p)
   ASSERT(queues[portId]);
   ASSERT(p);
 
+  // TODO: deencrypt incoming packet data
   return xQueueReceive(queues[portId], p, 0);
 }
 
@@ -212,6 +213,7 @@ void crtpRegisterPortCB(int port, CrtpCallback cb)
 
 int crtpSendPacket(CRTPPacket *p)
 {
+  // TODO: encrypt outgoing packet data
   ASSERT(p);
   ASSERT(p->size <= CRTP_MAX_DATA_SIZE);
 

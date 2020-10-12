@@ -427,7 +427,7 @@ ErrorStatus CRYP_AES_CBC(uint8_t Mode, uint8_t InitVectors[16], uint8_t *Key,
 
   if(CRYP_GetCmdStatus() == DISABLE)
   {
-    /* The CRYP peripheral clock is not enabled or the device doesn't embedd 
+    /* The CRYP peripheral clock is not enabled or the device doesn't embed
        the CRYP peripheral (please check the device sales type. */
     return(ERROR);
   }
