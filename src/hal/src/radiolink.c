@@ -53,8 +53,6 @@
 
 #define RADIOLINK_P2P_QUEUE_SIZE (5)
 
-#define AES_ECB_KEY ((unsigned char *) "abcdefghijklmnop") // todo: create an actual 128 bit key
-
 static xQueueHandle  txQueue;
 STATIC_MEM_QUEUE_ALLOC(txQueue, RADIOLINK_TX_QUEUE_SIZE, sizeof(SyslinkPacket));
 
@@ -199,10 +197,23 @@ void radiolinkSyslinkDispatch(SyslinkPacket *slp)
 
 static int radiolinkReceiveCRTPPacket(CRTPPacket *p)
 {
+#ifndef AES_ECB_KEY
+  if (xQueueReceive(crtpPacketDelivery, p, M2T(100)) == pdTrue)
+  {
+    uint8_t *data = (uint8_t*) malloc(p->size + 1);
+    memcpy(data, &p->header, p->size + 1);
+
+    CRYP_AES_ECB(MODE_DECRYPT, AES_ECB_KEY, 128, data, p->szie + 1, &p->header);
+
+    free(data);
+    return 0;
+  }
+#else
   if (xQueueReceive(crtpPacketDelivery, p, M2T(100)) == pdTRUE)
   {
     return 0;
   }
+#endif /* AES_ECB_KEY */
 
   return -1;
 }
@@ -222,10 +233,13 @@ static int radiolinkSendCRTPPacket(CRTPPacket *p)
   slp.length = p->size + 1;
 
 #ifdef AES_ECB_KEY
-  int length = p->size - p->size + 1 % 16 + p->size;
+  // the length of the packet payload along with the header
+  int length = p->size + 1 % 16 == 0
+      ? p->size + 1 :
+      16 - (p->size + 1) % 16 + p->size + 1;
   uint8_t *data = (uint8_t*) malloc(length);
 
-  memset(data, 0, length); // TODO: only set the last unused data to zero
+  memset(data, 0, length); // TODO: only zero the trailing unused data
   memcpy(data, &p->header, p->size + 1);
 
   CRYP_AES_ECB(MODE_ENCRYPT, AES_ECB_KEY, 128, data, length, (uint8_t*) slp.data);
