@@ -332,6 +332,29 @@ void crtpCommanderHighLevelTask(void * prm)
   crtpInitTaskQueue(CRTP_PORT_SETPOINT_HL);
 
   while(1) {
+    // check if the drone radio link is still connected
+    static int isConnectedId;
+    bool isConnected;
+
+    isConnectedId = logGetVarId("radio", "isConnected");
+    isConnected = logGetUint(isConnectedId);
+
+    if (! isConnected) {
+      // todo: return to start
+      //   forge packet payload
+
+      // todo: determine how long it should take at some standard velocity
+      struct data_go_to data = {
+        // most fields should be left at zer0s
+        .duration = 10
+      };
+
+      go_to(&data);
+
+      return;
+    }
+
+    // receive packet from client
     crtpReceivePacketBlock(CRTP_PORT_SETPOINT_HL, &p);
 
     switch(p.data[0])
