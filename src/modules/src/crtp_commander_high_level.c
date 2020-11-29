@@ -41,6 +41,7 @@ such as: take-off, landing, polynomial trajectories.
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <stdbool.h>
 
 /* FreeRtos includes */
 #include "FreeRTOS.h"
@@ -331,31 +332,21 @@ void crtpCommanderHighLevelTask(void * prm)
   CRTPPacket p;
   crtpInitTaskQueue(CRTP_PORT_SETPOINT_HL);
 
-  while(1) {
+  while(crtpReceivePacketWait(CRTP_PORT_SETPOINT_HL, &p, 10) == pdFALSE) {
     // check if the drone radio link is still connected
-    static int isConnectedId;
-    bool isConnected;
-
-    isConnectedId = logGetVarId("radio", "isConnected");
-    isConnected = logGetUint(isConnectedId);
+    bool isConnected = crtpIsConnected();
 
     if (! isConnected) {
-      // todo: return to start
-      //   forge packet payload
-
       // todo: determine how long it should take at some standard velocity
       struct data_go_to data = {
-        // most fields should be left at zer0s
-        .duration = 10
+          // most fields should be left at zero
+          .duration = 10
       };
 
       go_to(&data);
 
       return;
     }
-
-    // receive packet from client
-    crtpReceivePacketBlock(CRTP_PORT_SETPOINT_HL, &p);
 
     switch(p.data[0])
     {
